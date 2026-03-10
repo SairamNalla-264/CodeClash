@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+.practice-page {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 40px;
+  font-family: 'Outfit', sans-serif;
+  color: #fff;
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.practice-header {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.practice-header h2 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.6) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.controls {
+  display: flex;
+  gap: 15px;
+}
+
+.search-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: #fff;
+  width: 300px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  border-color: #6366f1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.practice-header select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: #fff;
+  outline: none;
+}
+
+/* TABLE */
+.practice-table-wrapper {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.practice-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.practice-table th {
+  padding: 20px 25px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.practice-table td {
+  padding: 20px 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.practice-row {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.practice-row:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.problem-title.clickable {
+  font-weight: 600;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.practice-row:hover .problem-title.clickable {
+  color: #818cf8;
+}
+
+/* DIFF BADGES */
+.diff {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.diff.easy {
+  color: #10b981;
+}
+
+.diff.medium {
+  color: #f59e0b;
+}
+
+.diff.hard {
+  color: #ef4444;
+}
+
+.topics {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.topic-tag {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.practice-loading {
+  text-align: center;
+  padding: 100px;
+  color: #6366f1;
+  font-size: 1.2rem;
+}
+
+.no-results {
+  text-align: center;
+  padding: 60px;
+  color: rgba(255, 255, 255, 0.4);
+}

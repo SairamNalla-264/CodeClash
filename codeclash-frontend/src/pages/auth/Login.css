@@ -1,0 +1,120 @@
+/* Login.css */
+
+.login-page {
+  min-height: calc(100vh - 64px);
+  background: linear-gradient(135deg, #0b1c2d, #102a43);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  padding: 2.2rem;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.login-logo {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #0b1c2d;
+  /* dark blue */
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.login-logo span {
+  color: #ff8c00;
+}
+
+
+/* Inputs */
+.login-card input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 0.95rem;
+  color: #111827;
+  background: #f9fafb;
+}
+
+.login-card input::placeholder {
+  color: #6b7280;
+}
+
+.login-card input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #ff8c00;
+  box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.15);
+}
+
+/* Button */
+.login-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #263238;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.login-btn:hover {
+  background: #1c262b;
+}
+
+/* Divider */
+.auth-divider {
+  margin: 1.5rem 0 1rem;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #d1d5db;
+}
+
+/* Google Button */
+.google-btn-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+
+/* Footer links */
+.login-footer {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.login-footer a {
+  color: #ff8c00;
+  text-decoration: none;
+  font-weight: 500;
+}

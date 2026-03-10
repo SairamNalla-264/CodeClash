@@ -1,0 +1,145 @@
+/* Landing.css */
+
+.landing {
+  height: calc(100vh - 64px);
+  background: linear-gradient(135deg, #0b1c2d, #102a43);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: white;
+}
+/* CLASH SYMBOL – HERO VERSION */
+.landing-clash {
+  position: relative;
+  width: 420px;
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main icon */
+.clash-icon {
+  font-size: 9rem;
+  z-index: 3;
+  color: #ffffff;
+  text-shadow:
+    0 0 25px rgba(255, 140, 0, 0.8),
+    0 0 60px rgba(255, 140, 0, 0.6);
+}
+
+/* Inner glowing ring */
+.clash-ring {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 140, 0, 0.75);
+  box-shadow:
+    0 0 40px rgba(255, 140, 0, 0.6),
+    inset 0 0 20px rgba(255, 140, 0, 0.4);
+  z-index: 2;
+}
+
+/* Outer arena ring */
+.clash-ring-outer {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 60px rgba(255, 140, 0, 0.25);
+  z-index: 1;
+}
+
+
+.landing-container {
+  display: flex;
+  max-width: 1200px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4rem;
+}
+
+/* LEFT CARD MOCK */
+.landing-visual {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transform: rotate(-5deg);
+}
+
+.visual-header {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.visual-box {
+  height: 40px;
+  width: 60px;
+  border-radius: 8px;
+}
+
+.box-blue {
+  background: #4dabf7;
+}
+.box-green {
+  background: #51cf66;
+}
+.box-yellow {
+  background: #fcc419;
+}
+.box-red {
+  background: #ff6b6b;
+}
+
+.visual-list {
+  margin-top: 1.5rem;
+}
+
+.visual-row {
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+/* RIGHT CONTENT */
+.landing-content {
+  max-width: 500px;
+}
+
+.landing-content h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.landing-content p {
+  font-size: 1.1rem;
+  color: #b0c4de;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* BUTTON */
+.cta-btn {
+  background: #ff8c00;
+  color: #0b1c2d;
+  padding: 0.8rem 1.6rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cta-btn:hover {
+  background: #ffa733;
+  transform: translateY(-2px);
+}

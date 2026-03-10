@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+.submissions-page {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: 'Outfit', sans-serif;
+    color: #fff;
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.submissions-header {
+    margin-bottom: 40px;
+}
+
+.submissions-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.submissions-header p {
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 5px;
+}
+
+/* TABLE */
+.submissions-table-wrapper {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.submissions-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.submissions-table th {
+    padding: 20px 25px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.submissions-table td {
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.verdict-tag {
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.verdict-tag.accepted {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.verdict-tag.wrong-answer {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.verdict-tag.error {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.problem-link {
+    font-weight: 600;
+    color: #818cf8;
+    text-decoration: none;
+}
+
+.problem-link:hover {
+    text-decoration: underline;
+}
+
+.loading-container {
+    padding: 100px;
+    text-align: center;
+    color: #6366f1;
+}
+
+.no-data {
+    text-align: center;
+    padding: 60px;
+    color: rgba(255, 255, 255, 0.4);
+}

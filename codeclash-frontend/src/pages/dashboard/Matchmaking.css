@@ -1,0 +1,187 @@
+.matchmaking-container {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 60px;
+    background: rgba(18, 18, 22, 0.8);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 32px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+    font-family: 'Outfit', sans-serif;
+    animation: slideUp 0.8s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.matchmaking-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f43f5e 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.matchmaking-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    margin-bottom: 50px;
+}
+
+.difficulty-selection {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 60px;
+}
+
+.difficulty-card {
+    flex: 1;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.difficulty-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-8px);
+}
+
+.difficulty-card.selected {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: #6366f1;
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+}
+
+.difficulty-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.difficulty-card p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.difficulty-card.easy h3 {
+    color: #10b981;
+}
+
+.difficulty-card.medium h3 {
+    color: #f59e0b;
+}
+
+.difficulty-card.hard h3 {
+    color: #ef4444;
+}
+
+.match-btn {
+    padding: 18px 60px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: #fff;
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
+}
+
+.match-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.7);
+}
+
+.match-btn:disabled {
+    background: #4b5563;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* WAITING STATE */
+.waiting-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.radar-loader {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 2px solid rgba(99, 102, 241, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radar-loader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #6366f1, transparent);
+    animation: rotate 2s linear infinite;
+    mask: radial-gradient(circle at center, transparent 69%, black 70%);
+}
+
+@keyframes rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.radar-pulse {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #6366f1;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #6366f1;
+}
+
+.timer {
+    font-size: 1.5rem;
+    font-family: monospace;
+    font-weight: 700;
+    color: #818cf8;
+}
+
+.cancel-btn {
+    margin-top: 20px;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 10px 30px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ef4444;
+    border-color: #ef4444;
+}
