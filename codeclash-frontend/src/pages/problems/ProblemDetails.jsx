@@ -4,12 +4,12 @@ import Editor from '@monaco-editor/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './ProblemDetails.css'
+import { apiUrl } from '../../config/env'
 
 const ProblemDetails = () => {
   const { id } = useParams()
 
-  const user = JSON.parse(localStorage.getItem('user')) || {}
-  const solvedProblems = (user.solvedProblems || []).map(String)
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || {})
 
   const [problem, setProblem] = useState(null)
   const [activeTab, setActiveTab] = useState('description')
@@ -30,7 +30,7 @@ const ProblemDetails = () => {
   const [submissions, setSubmissions] = useState([])
   const [peerRecs, setPeerRecs] = useState([])
 
-  const isSolved = solvedProblems.includes(id)
+  const isSolved = (user.solvedProblems || []).map(String).includes(id)
 
   /* ================= FETCH PROBLEM ================= */
   useEffect(() => {
@@ -42,7 +42,7 @@ const ProblemDetails = () => {
 
     const fetchProblem = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/problems/${id}`)
+        const res = await fetch(apiUrl(`/api/problems/${id}`))
         const data = await res.json()
         setProblem(data)
 
@@ -74,7 +74,7 @@ const ProblemDetails = () => {
       const token = localStorage.getItem('token')
       try {
         const res = await fetch(
-          `http://localhost:5000/api/submissions/problem/${id}`,
+          apiUrl(`/api/submissions/problem/${id}`),
           { headers: { Authorization: `Bearer ${token}` } }
         )
         const data = await res.json()
@@ -92,7 +92,7 @@ const ProblemDetails = () => {
     const fetchPeerRecs = async () => {
       const token = localStorage.getItem('token')
       try {
-        const res = await fetch('http://localhost:5000/api/users/recommendations/collaborative', {
+        const res = await fetch(apiUrl('/api/users/recommendations/collaborative'), {
           headers: { Authorization: `Bearer ${token}` }
         })
         const data = await res.json()
@@ -112,7 +112,7 @@ const ProblemDetails = () => {
 
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch('http://localhost:5000/api/judge/run', {
+      const res = await fetch(apiUrl('/api/judge/run'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ const ProblemDetails = () => {
 
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch('http://localhost:5000/api/judge/submit', {
+      const res = await fetch(apiUrl('/api/judge/submit'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,9 +165,11 @@ const ProblemDetails = () => {
           ...user,
           solvedProblems: [...(user.solvedProblems || []), problem._id]
         }
+        updatedUser.solved = updatedUser.solvedProblems.length
+        setUser(updatedUser)
         localStorage.setItem('user', JSON.stringify(updatedUser))
       }
-    } catch (err) {
+    } catch {
       setVerdict('System Error')
       setRunOutput({ error: 'Submission failed. Check backend logs or configuration.' })
     } finally {

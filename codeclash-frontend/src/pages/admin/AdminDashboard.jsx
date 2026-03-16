@@ -1,36 +1,34 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './AdminDashboard.css'
+import { apiUrl } from '../../config/env'
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
-  const [admin, setAdmin] = useState(null)
+  const [admin] = useState(() => JSON.parse(localStorage.getItem('user')))
   const [stats, setStats] = useState({ users: 142, problems: 24, battles: 18 })
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'))
     const token = localStorage.getItem('token')
 
-    if (!storedUser || storedUser.role !== 'admin') {
+    if (!admin || admin.role !== 'admin') {
       navigate('/dashboard')
       return
     }
 
-    setAdmin(storedUser)
-
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/admin/stats', {
+        const res = await fetch(apiUrl('/api/admin/stats'), {
           headers: { Authorization: `Bearer ${token}` }
         })
         const data = await res.json()
         setStats(data)
-      } catch (err) {
+      } catch {
         console.error('Failed to fetch admin stats')
       }
     }
     fetchStats()
-  }, [navigate])
+  }, [admin, navigate])
 
   if (!admin) return <div className="loading-screen">Authenticating Admin Access...</div>
 

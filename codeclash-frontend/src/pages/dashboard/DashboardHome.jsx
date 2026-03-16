@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import './DashboardHome.css'
+import { apiUrl } from '../../config/env'
+
+const getSolvedCount = (user) => Array.isArray(user?.solvedProblems) ? user.solvedProblems.length : (user?.solved || 0)
 
 const DashboardHome = () => {
   const navigate = useNavigate()
@@ -19,7 +22,7 @@ const DashboardHome = () => {
       if (!token) return
 
       try {
-        const res = await fetch('http://localhost:5000/api/users/me', {
+        const res = await fetch(apiUrl('/api/users/me'), {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -32,19 +35,19 @@ const DashboardHome = () => {
         localStorage.setItem('user', JSON.stringify(freshUser))
 
         // Fetch Daily
-        const dailyRes = await fetch('http://localhost:5000/api/problems/daily')
+        const dailyRes = await fetch(apiUrl('/api/problems/daily'))
         const dailyData = await dailyRes.json()
         setDaily(dailyData)
 
         // Fetch Recommendations (Content-Based)
-        const recsRes = await fetch('http://localhost:5000/api/problems/recommendations', {
+        const recsRes = await fetch(apiUrl('/api/problems/recommendations'), {
           headers: { Authorization: `Bearer ${token}` }
         })
         const recsData = await recsRes.json()
         setRecs(recsData)
 
         // Fetch Collaborative Recommendations
-        const collabRes = await fetch('http://localhost:5000/api/users/recommendations/collaborative', {
+        const collabRes = await fetch(apiUrl('/api/users/recommendations/collaborative'), {
           headers: { Authorization: `Bearer ${token}` }
         })
         const collabData = await collabRes.json()
@@ -92,7 +95,7 @@ const DashboardHome = () => {
 
         <div className="stat-card">
           <h3>Solved</h3>
-          <div className="stat-value">{user.solved || 0}</div>
+          <div className="stat-value">{getSolvedCount(user)}</div>
           <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', marginTop: '5px' }}>Problems completed</p>
         </div>
       </div>
@@ -105,7 +108,11 @@ const DashboardHome = () => {
           <p>Face an opponent matched by your Elo rating in a real-time battle.</p>
         </div>
 
-        <div className="action-card" style={{ background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05))', border: '1px solid rgba(16, 185, 129, 0.2)' }} onClick={() => navigate('/practice')}>
+        <div
+          className="action-card"
+          style={{ background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05))', border: '1px solid rgba(16, 185, 129, 0.2)' }}
+          onClick={() => navigate(daily?._id ? `/problems/${daily._id}` : '/practice')}
+        >
           <h3>📓 Daily Challenge</h3>
           <p>Solve today's featured problem to boost your streak and ELO.</p>
         </div>
@@ -120,7 +127,7 @@ const DashboardHome = () => {
           </div>
           <div className="rec-list">
             {recs.map(prob => (
-              <div key={prob._id} className="rec-item" onClick={() => navigate(`/practice`)}>
+              <div key={prob._id} className="rec-item" onClick={() => navigate(`/problems/${prob._id}`)}>
                 <div className="rec-info">
                   <span className="rec-title">{prob.title}</span>
                   <span className={`difficulty-tag ${prob.difficulty.toLowerCase()}`}>{prob.difficulty}</span>
@@ -140,7 +147,7 @@ const DashboardHome = () => {
           </div>
           <div className="rec-list">
             {collabRecs.map(prob => (
-              <div key={prob._id} className="rec-item" onClick={() => navigate(`/practice`)}>
+              <div key={prob._id} className="rec-item" onClick={() => navigate(`/problems/${prob._id}`)}>
                 <div className="rec-info">
                   <span className="rec-title">{prob.title}</span>
                   <span className={`difficulty-tag ${prob.difficulty.toLowerCase()}`}>{prob.difficulty}</span>

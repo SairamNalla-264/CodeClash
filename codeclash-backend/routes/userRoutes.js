@@ -8,10 +8,21 @@ const router = express.Router()
 // GET LEADERBOARD
 router.get('/leaderboard', async (req, res) => {
   try {
-    const topUsers = await User.find()
-      .sort({ solved: -1, elo: -1 })
-      .limit(50)
-      .select('username solved elo streak')
+    const users = await User.find()
+      .select('username solved elo streak solvedProblems')
+      .lean()
+
+    const topUsers = users
+      .map((user) => ({
+        ...user,
+        solved: Array.isArray(user.solvedProblems) ? user.solvedProblems.length : (user.solved || 0)
+      }))
+      .sort((a, b) => {
+        if (b.solved !== a.solved) return b.solved - a.solved
+        return (b.elo || 0) - (a.elo || 0)
+      })
+      .slice(0, 50)
+
     res.json(topUsers)
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch leaderboard' })
@@ -42,7 +53,11 @@ router.get('/stats/activity', authMiddleware, async (req, res) => {
 // GET LOGGED-IN USER DATA
 router.get('/me', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password')
+    const user = await User.findById(req.user.id).select('-password').lean()
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    user.solved = Array.isArray(user.solvedProblems) ? user.solvedProblems.length : (user.solved || 0)
     res.json(user)
   } catch {
     res.status(500).json({ message: 'Server error' })

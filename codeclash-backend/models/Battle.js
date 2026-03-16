@@ -39,7 +39,7 @@ const battleSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['waiting', 'active', 'completed'],
+        enum: ['waiting', 'active', 'completed', 'cancelled'],
         default: 'waiting'
     },
     winner: {

@@ -84,7 +84,8 @@ public:
         
     }
 };`,
-        java: `class Solution {
+        java: `import java.util.*;
+class Solution {
     public boolean solve(String s) {
         
     }

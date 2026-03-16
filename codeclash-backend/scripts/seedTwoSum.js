@@ -66,7 +66,8 @@ public:
         
     }
 };`,
-        java: `class Solution {
+        java: `import java.util.*;
+class Solution {
     public int[] solve(int[] nums, int target) {
         
     }
@@ -137,6 +138,7 @@ int main() {
 }
 `,
         java: `
+import java.util.*;       
 public class Main {
     public static void main(String[] args) throws Exception {
         java.util.Scanner sc = new java.util.Scanner(System.in);

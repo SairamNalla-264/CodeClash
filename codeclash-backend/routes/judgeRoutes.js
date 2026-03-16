@@ -17,6 +17,34 @@ const languageMap = {
   cpp: 54
 }
 
+/* ===============================
+   Helper: Join Code & Driver
+================================ */
+const joinCodeWithDriver = (code, driver, language) => {
+  if (!driver) return code;
+
+  if (language === 'java' || language === 'cpp') {
+    const lines = (code + '\n' + driver).split('\n');
+    const imports = [];
+    const body = [];
+
+    const importRegex = language === 'java' ? /^import\s+/ : /^#include\s+/;
+
+    lines.forEach(line => {
+      if (importRegex.test(line.trim())) {
+        imports.push(line);
+      } else {
+        body.push(line);
+      }
+    });
+
+    return [...new Set(imports)].join('\n') + '\n\n' + body.join('\n');
+  }
+
+  // Default for other languages
+  return code + '\n' + driver;
+}
+
 /* =====================================================
    RUN CODE → Visible Test Cases (NO DB UPDATE)
 ===================================================== */
@@ -43,6 +71,13 @@ router.post('/run', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Problem not found' })
     }
 
+    if (!Array.isArray(problem.visibleTestCases) || problem.visibleTestCases.length === 0) {
+      return res.status(400).json({
+        message: 'No visible test cases configured for this problem',
+        error: 'The Run action requires at least one visible test case.'
+      })
+    }
+
     const results = []
 
     for (const testCase of problem.visibleTestCases) {
@@ -53,9 +88,7 @@ router.post('/run', authMiddleware, async (req, res) => {
         ? problem.driverCode.get(language)
         : problem.driverCode[language]
 
-      const finalCode = langDriver
-        ? code + '\n' + langDriver
-        : code
+      const finalCode = joinCodeWithDriver(code, langDriver, language)
 
       const judgeResult = await runOnJudge0({
         source_code: finalCode,
@@ -133,6 +166,8 @@ router.post('/submit', authMiddleware, async (req, res) => {
 
     let verdict = 'Accepted'
     let runtime = 0
+    let passedCount = 0
+    const totalCount = problem.hiddenTestCases.length
 
     for (const testCase of problem.hiddenTestCases) {
       // Map based driverCode access
@@ -140,9 +175,7 @@ router.post('/submit', authMiddleware, async (req, res) => {
         ? problem.driverCode.get(language)
         : problem.driverCode[language]
 
-      const finalCode = langDriver
-        ? code + '\n' + langDriver
-        : code
+      const finalCode = joinCodeWithDriver(code, langDriver, language)
 
       const judgeResult = await runOnJudge0({
         source_code: finalCode,
@@ -165,6 +198,8 @@ router.post('/submit', authMiddleware, async (req, res) => {
             : 'Wrong Answer'
         break
       }
+
+      passedCount += 1
     }
 
     /* ---------- Save Submission ---------- */
@@ -190,13 +225,16 @@ router.post('/submit', authMiddleware, async (req, res) => {
       if (user) {
         const today = new Date().toISOString().split('T')[0]
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+        const alreadySolved = user.solvedProblems.some(
+          (solvedProblemId) => solvedProblemId.toString() === problemId.toString()
+        )
 
         // 1. Solve Count & SolvedProblems list
-        if (!user.solvedProblems.includes(problemId)) {
+        if (!alreadySolved) {
           user.solvedProblems.push(problemId)
-          user.solved = (user.solved || 0) + 1
           user.elo = (user.elo || 1200) + 10 // Practice ELO boost
         }
+        user.solved = user.solvedProblems.length
 
         // 2. Streak logic
         if (user.lastSolvedDate === yesterday) {
@@ -210,7 +248,11 @@ router.post('/submit', authMiddleware, async (req, res) => {
       }
     }
 
-    return res.json({ verdict })
+    return res.json({
+      verdict,
+      passedCount,
+      totalCount
+    })
 
   } catch (err) {
     const errorMessage = err.response?.data?.message || err.message || 'Runtime Error'

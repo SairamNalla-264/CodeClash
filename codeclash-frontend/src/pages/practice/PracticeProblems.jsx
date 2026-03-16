@@ -1,24 +1,43 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './PracticeProblems.css'
+import { apiUrl } from '../../config/env'
+
+const getSolvedProblemIds = (user) => new Set((user?.solvedProblems || []).map(String))
 
 const PracticeProblems = () => {
   const navigate = useNavigate()
+  const cachedUser = JSON.parse(localStorage.getItem('user') || 'null')
 
   const [problems, setProblems] = useState([])
   const [filtered, setFiltered] = useState([])
   const [difficulty, setDifficulty] = useState('All')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [solvedProblemIds, setSolvedProblemIds] = useState(getSolvedProblemIds(cachedUser))
 
   useEffect(() => {
     const fetchProblems = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/problems')
-        const data = await res.json()
+        const token = localStorage.getItem('token')
+        const requests = [fetch(apiUrl('/api/problems'))]
+        if (token) {
+          requests.push(fetch(apiUrl('/api/users/me'), {
+            headers: { Authorization: `Bearer ${token}` }
+          }))
+        }
+
+        const [problemsRes, userRes] = await Promise.all(requests)
+        const data = await problemsRes.json()
         setProblems(data)
         setFiltered(data)
-      } catch (err) {
+
+        if (userRes?.ok) {
+          const userData = await userRes.json()
+          localStorage.setItem('user', JSON.stringify(userData))
+          setSolvedProblemIds(getSolvedProblemIds(userData))
+        }
+      } catch {
         console.error('Failed to load problems')
       } finally {
         setLoading(false)
@@ -103,7 +122,12 @@ const PracticeProblems = () => {
                   <td>{index + 1}</td>
 
                   <td className="problem-title clickable">
-                    {problem.title}
+                    <div className="problem-title-row">
+                      <span>{problem.title}</span>
+                      {solvedProblemIds.has(String(problem._id)) && (
+                        <span className="practice-solved-badge">Solved</span>
+                      )}
+                    </div>
                   </td>
 
                   <td className={`diff ${problem.difficulty.toLowerCase()}`}>

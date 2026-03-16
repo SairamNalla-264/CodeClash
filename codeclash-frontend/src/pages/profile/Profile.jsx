@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import './Profile.css'
+import { apiUrl } from '../../config/env'
+
+const getSolvedCount = (user) => Array.isArray(user?.solvedProblems) ? user.solvedProblems.length : (user?.solved || 0)
 
 const Profile = () => {
   const cachedUser = JSON.parse(localStorage.getItem('user'))
@@ -9,7 +12,6 @@ const Profile = () => {
   const [battles, setBattles] = useState([])
   const [topics, setTopics] = useState({})
   const [accuracy, setAccuracy] = useState({ accuracy: 0, total: 0, solved: 0 })
-  const [loading, setLoading] = useState(true)
 
   // 1️⃣ Fetch Everything
   useEffect(() => {
@@ -22,11 +24,11 @@ const Profile = () => {
 
         // Parallel Fetch
         const [uRes, aRes, bRes, tRes, accRes] = await Promise.all([
-          fetch('http://localhost:5000/api/users/me', { headers }),
-          fetch('http://localhost:5000/api/users/stats/activity', { headers }),
-          fetch('http://localhost:5000/api/battles/history/me', { headers }),
-          fetch('http://localhost:5000/api/users/stats/topics', { headers }),
-          fetch('http://localhost:5000/api/users/stats/accuracy', { headers })
+          fetch(apiUrl('/api/users/me'), { headers }),
+          fetch(apiUrl('/api/users/stats/activity'), { headers }),
+          fetch(apiUrl('/api/battles/history/me'), { headers }),
+          fetch(apiUrl('/api/users/stats/topics'), { headers }),
+          fetch(apiUrl('/api/users/stats/accuracy'), { headers })
         ])
 
         const [uData, aData, bData, tData, accData] = await Promise.all([
@@ -42,8 +44,6 @@ const Profile = () => {
         localStorage.setItem('user', JSON.stringify(uData))
       } catch (err) {
         console.error('Failed to load profile data', err)
-      } finally {
-        setLoading(false)
       }
     }
 
@@ -102,7 +102,7 @@ const Profile = () => {
       <section className="profile-stats-grid">
         <div className="p-stat-card">
           <h4>Solved</h4>
-          <div className="p-stat-value">{user.solved || 0}</div>
+          <div className="p-stat-value">{getSolvedCount(user)}</div>
         </div>
         <div className="p-stat-card">
           <h4>ELO Rating</h4>

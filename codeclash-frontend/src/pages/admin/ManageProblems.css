@@ -77,7 +77,6 @@
 }
 
 .problem-form button {
-  grid-column: 1 / -1;
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   border: none;
   padding: 18px;
@@ -91,6 +90,25 @@
 .problem-form button:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+}
+
+.problem-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 16px;
+}
+
+.problem-form-actions button {
+  flex: 1;
+}
+
+.secondary-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.code-block {
+  grid-column: 1 / -1;
 }
 
 /* TABLE STYLES */
@@ -149,5 +167,25 @@
 
 .delete-btn:hover {
   background: #ef4444;
+  color: #fff;
+}
+
+.problem-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn {
+  background: rgba(99, 102, 241, 0.1);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-btn:hover {
+  background: #6366f1;
   color: #fff;
 }

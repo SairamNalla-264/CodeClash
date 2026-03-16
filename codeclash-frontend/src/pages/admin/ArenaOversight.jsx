@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './AdminDashboard.css' // Reusing dashboard styles for consistency
+import { apiUrl } from '../../config/env'
 
 const ArenaOversight = () => {
     const [battles, setBattles] = useState([])
@@ -9,12 +10,12 @@ const ArenaOversight = () => {
     useEffect(() => {
         const fetchBattles = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/admin/battles', {
+                const res = await fetch(apiUrl('/api/admin/battles'), {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                 const data = await res.json()
                 setBattles(data)
-            } catch (err) {
+            } catch {
                 console.error('Failed to load battles')
             } finally {
                 setLoading(false)

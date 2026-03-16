@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './Leaderboard.css'
+import { apiUrl } from '../../config/env'
 
 const Leaderboard = () => {
     const [users, setUsers] = useState([])
@@ -8,7 +9,7 @@ const Leaderboard = () => {
     useEffect(() => {
         const fetchLeaderboard = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/users/leaderboard')
+                const res = await fetch(apiUrl('/api/users/leaderboard'))
                 const data = await res.json()
                 setUsers(data)
             } catch (err) {

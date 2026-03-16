@@ -1,47 +1,132 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { io } from 'socket.io-client'
+import socket from '../../socket/socketClient'
 import './Matchmaking.css'
+import { apiUrl } from '../../config/env'
+const POLL_INTERVAL_MS = 2000
 
-const socket = io('http://localhost:5000')
+const normalizeId = (value) => {
+    if (!value) return ''
+    if (typeof value === 'string') return value
+    if (typeof value === 'object' && value._id) return normalizeId(value._id)
+    return String(value)
+}
 
 const Matchmaking = () => {
     const navigate = useNavigate()
     const [difficulty, setDifficulty] = useState('Medium')
     const [isSearching, setIsSearching] = useState(false)
     const [timer, setTimer] = useState(0)
-    const [battleId, setBattleId] = useState(null)
+    const battleIdRef = useRef(null)
+    const pollRef = useRef(null)
+    const timerRef = useRef(null)
+    const isSearchingRef = useRef(false)
 
-    useEffect(() => {
-        let interval
-        if (isSearching) {
-            interval = setInterval(() => {
-                setTimer(prev => prev + 1)
-            }, 1000)
-        } else {
-            setTimer(0)
-        }
-        return () => clearInterval(interval)
-    }, [isSearching])
+    const stopSearching = useCallback(() => {
+        isSearchingRef.current = false
+        setIsSearching(false)
+        clearInterval(pollRef.current)
+        clearInterval(timerRef.current)
+        pollRef.current = null
+        timerRef.current = null
+    }, [])
 
-    // SOCKET LISTENERS
-    useEffect(() => {
-        socket.on('match_found', (data) => {
-            console.log('Match Found!', data)
-            setIsSearching(false)
-            navigate(`/battle/${data._id}`)
-        })
+    const leaveCurrentBattleRoom = useCallback(() => {
+        if (!battleIdRef.current) return
+        socket.emit('leave_battle', battleIdRef.current)
+        battleIdRef.current = null
+    }, [])
 
-        return () => {
-            socket.off('match_found')
-        }
-    }, [navigate])
-
-    const startMatchmaking = async () => {
-        setIsSearching(true)
+    const cancelServerMatchmaking = useCallback(async () => {
         const token = localStorage.getItem('token')
         try {
-            const res = await fetch('http://localhost:5000/api/battles/match', {
+            await fetch(apiUrl('/api/battles/cancel'), {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` }
+            })
+        } catch (err) {
+            console.error('Cancel matchmaking failed:', err)
+        }
+    }, [])
+
+    const fetchBattleStatus = useCallback(async (battleId) => {
+        const token = localStorage.getItem('token')
+        const res = await fetch(apiUrl(`/api/battles/${battleId}`), {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (!res.ok) {
+            throw new Error(`Failed to fetch battle ${battleId}: ${res.status}`)
+        }
+
+        return res.json()
+    }, [])
+
+    const startPolling = useCallback((battleId) => {
+        clearInterval(pollRef.current)
+        pollRef.current = setInterval(async () => {
+            try {
+                const data = await fetchBattleStatus(battleId)
+                if (battleIdRef.current !== battleId) return
+
+                if (data.status === 'active') {
+                    stopSearching()
+                    leaveCurrentBattleRoom()
+                    navigate(`/battle/${battleId}`)
+                } else if (data.status === 'cancelled' || data.status === 'completed') {
+                    stopSearching()
+                    leaveCurrentBattleRoom()
+                }
+            } catch (err) {
+                console.error('Poll error:', err)
+            }
+        }, POLL_INTERVAL_MS)
+    }, [fetchBattleStatus, leaveCurrentBattleRoom, navigate, stopSearching])
+
+    useEffect(() => {
+        return () => {
+            stopSearching()
+            leaveCurrentBattleRoom()
+        }
+    }, [leaveCurrentBattleRoom, stopSearching])
+
+    useEffect(() => {
+        if (isSearching) {
+            setTimer(0)
+            timerRef.current = setInterval(() => setTimer(prev => prev + 1), 1000)
+        } else {
+            clearInterval(timerRef.current)
+        }
+
+        return () => clearInterval(timerRef.current)
+    }, [isSearching])
+
+    useEffect(() => {
+        const handleMatchFound = (data) => {
+            const eventBattleId = normalizeId(data?._id)
+            if (!isSearchingRef.current || !eventBattleId || battleIdRef.current !== eventBattleId) {
+                return
+            }
+
+            stopSearching()
+            leaveCurrentBattleRoom()
+            navigate(`/battle/${eventBattleId}`)
+        }
+
+        socket.on('match_found', handleMatchFound)
+        return () => socket.off('match_found', handleMatchFound)
+    }, [leaveCurrentBattleRoom, navigate, stopSearching])
+
+    const startMatchmaking = async () => {
+        leaveCurrentBattleRoom()
+        stopSearching()
+        isSearchingRef.current = true
+        setIsSearching(true)
+
+        const token = localStorage.getItem('token')
+
+        try {
+            const res = await fetch(apiUrl('/api/battles/match'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,27 +134,33 @@ const Matchmaking = () => {
                 },
                 body: JSON.stringify({ difficulty })
             })
+
             const data = await res.json()
+            if (!res.ok) {
+                throw new Error(data.message || 'Matchmaking failed')
+            }
 
             if (data.status === 'active') {
+                stopSearching()
                 navigate(`/battle/${data._id}`)
-            } else {
-                setBattleId(data._id)
-                // Join the socket room for this battle to wait for notification
-                socket.emit('join_battle', data._id)
+                return
             }
+
+            const waitingBattleId = normalizeId(data._id)
+            battleIdRef.current = waitingBattleId
+            socket.emit('join_battle', waitingBattleId)
+            startPolling(waitingBattleId)
         } catch (err) {
-            console.error('Matchmaking request failed', err)
-            setIsSearching(false)
+            console.error('Matchmaking request failed:', err)
+            leaveCurrentBattleRoom()
+            stopSearching()
         }
     }
 
-    const cancelMatchmaking = () => {
-        setIsSearching(false)
-        setBattleId(null)
-        if (battleId) {
-            socket.emit('leave_battle', battleId);
-        }
+    const cancelMatchmaking = async () => {
+        stopSearching()
+        leaveCurrentBattleRoom()
+        await cancelServerMatchmaking()
     }
 
     return (

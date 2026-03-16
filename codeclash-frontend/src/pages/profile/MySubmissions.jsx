@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import './MySubmissions.css'
+import { apiUrl } from '../../config/env'
 
 const MySubmissions = () => {
     const [submissions, setSubmissions] = useState([])
@@ -10,7 +11,7 @@ const MySubmissions = () => {
         const fetchSubmissions = async () => {
             const token = localStorage.getItem('token')
             try {
-                const res = await fetch('http://localhost:5000/api/submissions/me', {
+                const res = await fetch(apiUrl('/api/submissions/me'), {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                 const data = await res.json()

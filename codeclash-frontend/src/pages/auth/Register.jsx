@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { GoogleLogin } from '@react-oauth/google'
 import './Register.css'
+import { GOOGLE_CLIENT_ID, apiUrl } from '../../config/env'
 
 
 const Register = () => {
@@ -14,7 +15,7 @@ const Register = () => {
 
   const handleRegister = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const res = await fetch(apiUrl('/api/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -38,14 +39,14 @@ const Register = () => {
         navigate('/dashboard')
       }
 
-    } catch (err) {
+    } catch {
       setError('Server error. Please try again.')
     }
   }
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
+      const res = await fetch(apiUrl('/api/auth/google'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential: credentialResponse.credential })
@@ -66,7 +67,7 @@ const Register = () => {
       } else {
         navigate('/dashboard')
       }
-    } catch (err) {
+    } catch {
       setError('Google login failed')
     }
   }
@@ -115,21 +116,23 @@ const Register = () => {
           Create Account
         </button>
 
-        {/* DIVIDER */}
-        <div className="auth-divider">or sign up with</div>
+        {GOOGLE_CLIENT_ID && (
+          <>
+            <div className="auth-divider">or sign up with</div>
 
-        {/* GOOGLE BUTTON */}
-        <div className="google-btn-container">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError('Google login failed')}
-            useOneTap
-            theme="filled_black"
-            shape="pill"
-            text="signup_with"
-            width="100%"
-          />
-        </div>
+            <div className="google-btn-container">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google login failed')}
+                useOneTap
+                theme="filled_black"
+                shape="pill"
+                text="signup_with"
+                width="100%"
+              />
+            </div>
+          </>
+        )}
 
 
         {/* FOOTER */}

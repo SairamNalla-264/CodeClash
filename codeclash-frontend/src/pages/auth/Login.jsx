@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { GoogleLogin } from '@react-oauth/google'
 import './Login.css'
+import { GOOGLE_CLIENT_ID, apiUrl } from '../../config/env'
 
 
 const Login = () => {
@@ -13,7 +14,7 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -45,7 +46,7 @@ const Login = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
+      const res = await fetch(apiUrl('/api/auth/google'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential: credentialResponse.credential })
@@ -66,7 +67,7 @@ const Login = () => {
       } else {
         navigate('/dashboard')
       }
-    } catch (err) {
+    } catch {
       setError('Google login failed')
     }
   }
@@ -110,25 +111,27 @@ const Login = () => {
         </button>
 
         {/* DIVIDER */}
-        <div className="auth-divider">or sign in with</div>
+        {GOOGLE_CLIENT_ID && (
+          <>
+            <div className="auth-divider">or sign in with</div>
 
-        {/* GOOGLE BUTTON */}
-        <div className="google-btn-container">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError('Google login failed')}
-            useOneTap
-            theme="filled_black"
-            shape="pill"
-            text="signin_with"
-            width="100%"
-          />
-        </div>
+            <div className="google-btn-container">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google login failed')}
+                useOneTap
+                theme="filled_black"
+                shape="pill"
+                text="signin_with"
+                width="100%"
+              />
+            </div>
+          </>
+        )}
 
 
         {/* FOOTER LINKS */}
         <div className="login-footer">
-          <Link to="/forgot-password">Forgot password?</Link>
           <Link to="/register">Sign Up</Link>
         </div>
 

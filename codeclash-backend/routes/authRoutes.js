@@ -42,7 +42,8 @@ router.post('/register', async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        elo: user.elo
+        elo: user.elo,
+        role: user.role
       }
     })
   } catch (error) {
@@ -80,7 +81,8 @@ router.post('/login', async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        elo: user.elo
+        elo: user.elo,
+        role: user.role
       }
     })
   } catch (error) {
