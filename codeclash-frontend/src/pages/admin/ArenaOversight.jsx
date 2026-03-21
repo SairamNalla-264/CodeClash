@@ -2,9 +2,17 @@ import { useEffect, useState } from 'react'
 import './AdminDashboard.css' // Reusing dashboard styles for consistency
 import { apiUrl } from '../../config/env'
 
+const normalizeId = (value) => {
+    if (!value) return ''
+    if (typeof value === 'string') return value
+    if (typeof value === 'object' && value._id) return normalizeId(value._id)
+    return String(value)
+}
+
 const ArenaOversight = () => {
     const [battles, setBattles] = useState([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
     const token = localStorage.getItem('token')
 
     useEffect(() => {
@@ -13,10 +21,16 @@ const ArenaOversight = () => {
                 const res = await fetch(apiUrl('/api/admin/battles'), {
                     headers: { Authorization: `Bearer ${token}` }
                 })
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch battles: ${res.status}`)
+                }
                 const data = await res.json()
-                setBattles(data)
-            } catch {
-                console.error('Failed to load battles')
+                setBattles(Array.isArray(data) ? data : [])
+                setError('')
+            } catch (err) {
+                console.error('Failed to load battles', err)
+                setError('Failed to load battles.')
+                setBattles([])
             } finally {
                 setLoading(false)
             }
@@ -25,6 +39,7 @@ const ArenaOversight = () => {
     }, [token])
 
     if (loading) return <div className="loading-screen">Scanning active streams...</div>
+    if (error) return <div className="loading-screen">{error}</div>
 
     return (
         <div className="admin-dashboard">
@@ -45,15 +60,23 @@ const ArenaOversight = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {battles.map(b => (
+                        {battles.map(b => {
+                            const players = Array.isArray(b.players) ? b.players : []
+                            const winner = players.find(p => normalizeId(p.user) === normalizeId(b.winner))
+
+                            return (
                             <tr key={b._id}>
-                                <td style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>{b._id.slice(-8)}</td>
-                                <td style={{ fontWeight: 600 }}>{b.problem?.title}</td>
+                                <td style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>{String(b._id || '').slice(-8)}</td>
+                                <td style={{ fontWeight: 600 }}>{b.problem?.title || 'Unknown problem'}</td>
                                 <td>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                        {b.players.map(p => (
-                                            <span key={p.user?._id} className="topic-tag" style={{ fontSize: '0.7rem' }}>
-                                                {p.user?.username} ({p.progress}%)
+                                        {players.length === 0 ? (
+                                            <span className="topic-tag" style={{ fontSize: '0.7rem' }}>
+                                                No players
+                                            </span>
+                                        ) : players.map((p, index) => (
+                                            <span key={normalizeId(p.user) || index} className="topic-tag" style={{ fontSize: '0.7rem' }}>
+                                                {p.user?.username || 'Unknown user'} ({p.progress ?? 0}%)
                                             </span>
                                         ))}
                                     </div>
@@ -67,10 +90,10 @@ const ArenaOversight = () => {
                                     </span>
                                 </td>
                                 <td style={{ color: '#6366f1', fontWeight: 700 }}>
-                                    {b.winner ? `Winner: ${b.players.find(p => p.user._id === b.winner)?.user?.username}` : 'No Winner'}
+                                    {b.winner ? `Winner: ${winner?.user?.username || 'Unknown user'}` : 'No Winner'}
                                 </td>
                             </tr>
-                        ))}
+                        )})}
                     </tbody>
                 </table>
             </div>

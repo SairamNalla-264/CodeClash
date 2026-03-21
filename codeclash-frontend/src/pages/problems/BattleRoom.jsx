@@ -50,12 +50,6 @@ const BattleRoom = () => {
 
     const userId = getStoredUserId()
 
-    const applyStarterCode = useCallback((nextBattle) => {
-        const starterCode = nextBattle?.problem?.starterCode?.[language]
-        if (!starterCode || hasEditedCodeRef.current || code) return
-        setCode(starterCode)
-    }, [code, language])
-
     const fetchBattle = useCallback(async () => {
         try {
             const token = localStorage.getItem('token')
@@ -70,13 +64,25 @@ const BattleRoom = () => {
             const data = await res.json()
             setBattle(data)
             setCompletionReason(data.resolutionReason || null)
-            applyStarterCode(data)
+            if (!hasEditedCodeRef.current && !code) {
+                const initialLang = 'javascript'
+                if (data.problem?.starterCode && data.problem.starterCode[initialLang]) {
+                    setLanguage(initialLang)
+                    setCode(data.problem.starterCode[initialLang])
+                } else if (data.problem?.starterCode) {
+                    const firstLang = Object.keys(data.problem.starterCode)[0]
+                    if (firstLang) {
+                        setLanguage(firstLang)
+                        setCode(data.problem.starterCode[firstLang])
+                    }
+                }
+            }
             return data
         } catch (err) {
             console.error('Failed to fetch battle:', err)
             return null
         }
-    }, [applyStarterCode, id])
+    }, [code, id])
 
     const stopPolling = useCallback(() => {
         clearInterval(pollRef.current)
@@ -137,7 +143,19 @@ const BattleRoom = () => {
             if (normalizeId(data?._id) !== id) return
             setBattle(data)
             setCompletionReason(data.resolutionReason || null)
-            applyStarterCode(data)
+            if (!hasEditedCodeRef.current && !code) {
+                const initialLang = 'javascript'
+                if (data.problem?.starterCode && data.problem.starterCode[initialLang]) {
+                    setLanguage(initialLang)
+                    setCode(data.problem.starterCode[initialLang])
+                } else if (data.problem?.starterCode) {
+                    const firstLang = Object.keys(data.problem.starterCode)[0]
+                    if (firstLang) {
+                        setLanguage(firstLang)
+                        setCode(data.problem.starterCode[firstLang])
+                    }
+                }
+            }
             stopPolling()
         }
 
@@ -177,7 +195,7 @@ const BattleRoom = () => {
             socket.off('receive_progress', handleReceiveProgress)
             socket.off('battle_finished', handleBattleFinished)
         }
-    }, [applyStarterCode, id, stopPolling])
+    }, [code, id, stopPolling])
 
     useEffect(() => {
         const handleFullscreenChange = () => {
@@ -379,11 +397,30 @@ const BattleRoom = () => {
         )
     }
 
-    const me = battle.players.find(player => normalizeId(player.user?._id || player.user) === userId)
-    const competitor = battle.players.find(player => normalizeId(player.user?._id || player.user) !== userId)
+    if (battle.status === 'cancelled') {
+        return (
+            <div className="loading-screen waiting-screen">
+                <div className="waiting-content">
+                    <h2>Battle cancelled</h2>
+                    <p>This room is no longer active.</p>
+                    <button className="home-btn" onClick={() => navigate('/dashboard')}>
+                        Back to dashboard
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    const players = Array.isArray(battle.players) ? battle.players : []
+    const me = players.find(player => normalizeId(player.user?._id || player.user) === userId)
+    const competitor = players.find(player => normalizeId(player.user?._id || player.user) !== userId)
     const isWinner = normalizeId(battle.winner) === userId
     const isDraw = battle.status === 'completed' && !battle.winner
     const isTimeout = completionReason === 'timeout'
+    const description = typeof battle.problem?.description === 'string'
+        ? battle.problem.description
+        : 'Problem statement is unavailable for this battle.'
+    const editorLanguage = language === 'nodejs' ? 'javascript' : language
 
     return (
         <div className="battleroom-container">
@@ -453,7 +490,7 @@ const BattleRoom = () => {
             <main className="battle-main">
                 <section className="battle-left-panel">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {battle.problem?.description}
+                        {description}
                     </ReactMarkdown>
                 </section>
 
@@ -506,15 +543,21 @@ const BattleRoom = () => {
                             </select>
                         </div>
                         <Editor
-                            height="90%"
+                            height="100%"
                             theme="vs-dark"
-                            language={language}
+                            language={editorLanguage}
                             value={code}
                             onChange={(value) => {
                                 hasEditedCodeRef.current = true
                                 setCode(value || '')
                             }}
-                            options={{ minimap: { enabled: false }, fontSize: 14 }}
+                            loading={<div className="loading-screen">Loading editor...</div>}
+                            options={{
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                scrollBeyondLastLine: false,
+                                automaticLayout: true
+                            }}
                         />
                     </div>
 
