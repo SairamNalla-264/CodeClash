@@ -30,6 +30,32 @@ const getStoredUserId = () => {
     }
 }
 
+const getStarterCodeMap = (value) => {
+    if (!value) return {}
+    if (typeof value.get === 'function') {
+        return {
+            javascript: value.get('javascript') || '',
+            python: value.get('python') || '',
+            java: value.get('java') || '',
+            cpp: value.get('cpp') || ''
+        }
+    }
+
+    return {
+        javascript: value.javascript || '',
+        python: value.python || '',
+        java: value.java || '',
+        cpp: value.cpp || ''
+    }
+}
+
+const LANGUAGE_LABELS = {
+    javascript: 'JavaScript',
+    python: 'Python',
+    java: 'Java',
+    cpp: 'C++'
+}
+
 const BattleRoom = () => {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -47,8 +73,27 @@ const BattleRoom = () => {
     const [completionReason, setCompletionReason] = useState(null)
     const pollRef = useRef(null)
     const hasEditedCodeRef = useRef(false)
+    const codeRef = useRef('')
 
     const userId = getStoredUserId()
+
+    useEffect(() => {
+        codeRef.current = code
+    }, [code])
+
+    const hydrateStarterCode = useCallback((nextBattle) => {
+        if (hasEditedCodeRef.current || codeRef.current) return
+
+        const starterCode = getStarterCodeMap(nextBattle?.problem?.starterCode)
+
+        const defaultLanguage = starterCode.javascript
+            ? 'javascript'
+            : Object.keys(starterCode).find((lang) => starterCode[lang])
+        if (!defaultLanguage) return
+
+        setLanguage(defaultLanguage)
+        setCode(starterCode[defaultLanguage] || '')
+    }, [])
 
     const fetchBattle = useCallback(async () => {
         try {
@@ -64,25 +109,13 @@ const BattleRoom = () => {
             const data = await res.json()
             setBattle(data)
             setCompletionReason(data.resolutionReason || null)
-            if (!hasEditedCodeRef.current && !code) {
-                const initialLang = 'javascript'
-                if (data.problem?.starterCode && data.problem.starterCode[initialLang]) {
-                    setLanguage(initialLang)
-                    setCode(data.problem.starterCode[initialLang])
-                } else if (data.problem?.starterCode) {
-                    const firstLang = Object.keys(data.problem.starterCode)[0]
-                    if (firstLang) {
-                        setLanguage(firstLang)
-                        setCode(data.problem.starterCode[firstLang])
-                    }
-                }
-            }
+            hydrateStarterCode(data)
             return data
         } catch (err) {
             console.error('Failed to fetch battle:', err)
             return null
         }
-    }, [code, id])
+    }, [hydrateStarterCode, id])
 
     const stopPolling = useCallback(() => {
         clearInterval(pollRef.current)
@@ -143,19 +176,7 @@ const BattleRoom = () => {
             if (normalizeId(data?._id) !== id) return
             setBattle(data)
             setCompletionReason(data.resolutionReason || null)
-            if (!hasEditedCodeRef.current && !code) {
-                const initialLang = 'javascript'
-                if (data.problem?.starterCode && data.problem.starterCode[initialLang]) {
-                    setLanguage(initialLang)
-                    setCode(data.problem.starterCode[initialLang])
-                } else if (data.problem?.starterCode) {
-                    const firstLang = Object.keys(data.problem.starterCode)[0]
-                    if (firstLang) {
-                        setLanguage(firstLang)
-                        setCode(data.problem.starterCode[firstLang])
-                    }
-                }
-            }
+            hydrateStarterCode(data)
             stopPolling()
         }
 
@@ -195,7 +216,7 @@ const BattleRoom = () => {
             socket.off('receive_progress', handleReceiveProgress)
             socket.off('battle_finished', handleBattleFinished)
         }
-    }, [code, id, stopPolling])
+    }, [hydrateStarterCode, id, stopPolling])
 
     useEffect(() => {
         const handleFullscreenChange = () => {
@@ -377,6 +398,18 @@ const BattleRoom = () => {
         }
     }
 
+    const starterCodeMap = getStarterCodeMap(battle?.problem?.starterCode)
+    const availableLanguages = Object.keys(LANGUAGE_LABELS).filter((lang) => starterCodeMap[lang])
+
+    useEffect(() => {
+        if (!battle || availableLanguages.length === 0) return
+        if (!availableLanguages.includes(language)) {
+            setLanguage(availableLanguages[0])
+            setCode(starterCodeMap[availableLanguages[0]] || '')
+            hasEditedCodeRef.current = false
+        }
+    }, [availableLanguages, battle, language, starterCodeMap])
+
     if (!battle) {
         return <div className="loading-screen">Arena is preparing...</div>
     }
@@ -489,9 +522,50 @@ const BattleRoom = () => {
 
             <main className="battle-main">
                 <section className="battle-left-panel">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {description}
-                    </ReactMarkdown>
+                    <div className="battle-problem-content">
+                        <div className="problem-header">
+                            <h2>{battle.problem?.title}</h2>
+                            <div className="problem-meta">
+                                <span className={`difficulty ${battle.difficulty?.toLowerCase()}`}>
+                                    {battle.difficulty}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="markdown-content">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {description}
+                            </ReactMarkdown>
+                        </div>
+
+                        {Array.isArray(battle.problem?.examples) && battle.problem.examples.length > 0 && (
+                            <div className="examples-section">
+                                {battle.problem.examples.map((example, index) => (
+                                    <div key={index} className="prob-example">
+                                        <strong>Example {index + 1}:</strong>
+                                        <div className="example-block">
+                                            <p><span className="label">Input:</span> {example.input}</p>
+                                            <p><span className="label">Output:</span> {example.output}</p>
+                                            {example.explanation && (
+                                                <p><span className="label">Explanation:</span> {example.explanation}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {Array.isArray(battle.problem?.constraints) && battle.problem.constraints.length > 0 && (
+                            <div className="constraints-section">
+                                <strong>Constraints:</strong>
+                                <ul>
+                                    {battle.problem.constraints.map((constraint, index) => (
+                                        <li key={index}>{constraint}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
                 </section>
 
                 <section className="battle-right-panel">
@@ -523,42 +597,40 @@ const BattleRoom = () => {
                     </div>
 
                     <div className="editor-container">
-                        <div className="editor-header-mini" style={{ padding: '10px', background: '#252526', display: 'flex', justifyContent: 'flex-end' }}>
+                        <div className="editor-header-mini">
                             <select
                                 value={language}
-                                style={{ background: '#333', color: '#fff', border: '1px solid #444', borderRadius: '4px', padding: '4px 8px' }}
                                 onChange={(e) => {
                                     const nextLanguage = e.target.value
                                     setLanguage(nextLanguage)
                                     hasEditedCodeRef.current = false
-                                    if (battle.problem?.starterCode?.[nextLanguage]) {
-                                        setCode(battle.problem.starterCode[nextLanguage])
-                                    }
+                                    setCode(starterCodeMap[nextLanguage] || '')
                                 }}
                             >
-                                <option value="javascript">JavaScript</option>
-                                <option value="python">Python</option>
-                                <option value="java">Java</option>
-                                <option value="cpp">C++</option>
+                                {availableLanguages.map((lang) => (
+                                    <option key={lang} value={lang}>{LANGUAGE_LABELS[lang]}</option>
+                                ))}
                             </select>
                         </div>
-                        <Editor
-                            height="100%"
-                            theme="vs-dark"
-                            language={editorLanguage}
-                            value={code}
-                            onChange={(value) => {
-                                hasEditedCodeRef.current = true
-                                setCode(value || '')
-                            }}
-                            loading={<div className="loading-screen">Loading editor...</div>}
-                            options={{
-                                minimap: { enabled: false },
-                                fontSize: 14,
-                                scrollBeyondLastLine: false,
-                                automaticLayout: true
-                            }}
-                        />
+                        <div className="battle-editor-surface">
+                            <Editor
+                                height="100%"
+                                theme="vs-dark"
+                                language={editorLanguage}
+                                value={code}
+                                onChange={(value) => {
+                                    hasEditedCodeRef.current = true
+                                    setCode(value || '')
+                                }}
+                                loading={<div className="loading-screen">Loading editor...</div>}
+                                options={{
+                                    minimap: { enabled: false },
+                                    fontSize: 14,
+                                    scrollBeyondLastLine: false,
+                                    automaticLayout: true
+                                }}
+                            />
+                        </div>
                     </div>
 
                     <footer className="action-footer">

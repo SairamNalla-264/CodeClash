@@ -53,7 +53,7 @@ module.exports = (io) => {
                 }
 
                 console.log(`Match Found, emitting to room: ${activatedBattle._id.toString()}`)
-                io.to(activatedBattle._id.toString()).emit('match_found', activatedBattle.toObject())
+                io.to(activatedBattle._id.toString()).emit('match_found', activatedBattle.toObject({ flattenMaps: true }))
                 return res.json(activatedBattle)
             }
 
@@ -105,7 +105,7 @@ module.exports = (io) => {
             }
 
             await resolveTimedOutBattle(battle, io)
-            const payload = battle.toObject()
+            const payload = battle.toObject({ flattenMaps: true })
             payload.remainingSeconds = battle.status === 'active'
                 ? getRemainingSeconds(battle)
                 : 0
